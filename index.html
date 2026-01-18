@@ -71,6 +71,7 @@
             padding: 20px;
             font-size: 1.5rem;
             z-index: 10;
+            pointer-events: auto;
         }
 
         #overlay {
@@ -89,6 +90,7 @@
             font-weight: bold;
             text-align: center;
             z-index: 5;
+            pointer-events: auto;
         }
 
         #overlaySub {
@@ -125,6 +127,7 @@
             justify-content: center;
             align-items: center;
             touch-action: manipulation;
+            cursor: pointer;
         }
 
         .dpadBtn:active {
@@ -134,13 +137,12 @@
         #centerRow {
             display: flex;
             justify-content: center;
-            align-items: center;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 0;
         }
 
         #pauseBtn {
-            width: 140px;
+            width: 220px;
             height: 60px;
             background-color: #222;
             color: #FFD400;
@@ -149,6 +151,7 @@
             font-size: 1.5rem;
             font-weight: bold;
             touch-action: manipulation;
+            cursor: pointer;
         }
 
         #pauseBtn:active {
@@ -171,13 +174,13 @@
             <div class="dpadRow">
                 <div class="dpadBtn" id="upBtn">↑</div>
             </div>
+            <div id="centerRow">
+                <button id="pauseBtn">PAUSE</button>
+            </div>
             <div class="dpadRow">
                 <div class="dpadBtn" id="leftBtn">←</div>
                 <div class="dpadBtn" id="downBtn">↓</div>
                 <div class="dpadBtn" id="rightBtn">→</div>
-            </div>
-            <div id="centerRow">
-                <button id="pauseBtn">PAUSE</button>
             </div>
         </div>
     </div>
@@ -274,6 +277,7 @@
                 initSnake();
                 placeFood();
                 lastTime = performance.now();
+                pauseBtn.textContent = 'PAUSE';
             }
 
             function update() {
@@ -409,18 +413,30 @@
                 }
             });
 
-            upBtn.addEventListener('click', () => handleDirectionChange({ x: 0, y: -1 }));
-            downBtn.addEventListener('click', () => handleDirectionChange({ x: 0, y: 1 }));
-            leftBtn.addEventListener('click', () => handleDirectionChange({ x: -1, y: 0 }));
-            rightBtn.addEventListener('click', () => handleDirectionChange({ x: 1, y: 0 }));
+            function bindPress(el, fn) {
+                el.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fn();
+                }, { passive: false });
+            }
 
-            pauseBtn.addEventListener('click', () => {
+            bindPress(upBtn,   () => handleDirectionChange({ x: 0, y: -1 }));
+            bindPress(downBtn, () => handleDirectionChange({ x: 0, y:  1 }));
+            bindPress(leftBtn, () => handleDirectionChange({ x: -1, y: 0 }));
+            bindPress(rightBtn,() => handleDirectionChange({ x:  1, y: 0 }));
+
+            bindPress(pauseBtn, () => {
                 paused = !paused;
                 pauseBtn.textContent = paused ? 'RESUME' : 'PAUSE';
-                if (!paused) {
-                    lastTime = performance.now();
-                }
+                if (!paused) lastTime = performance.now();
             });
+
+            overlay.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (gameOver) resetGame();
+            }, { passive: false });
 
             document.addEventListener('keydown', e => {
                 switch(e.key) {
@@ -451,4 +467,4 @@
         })();
     </script>
 </body>
-</html> 
+</html>
